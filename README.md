@@ -1,4 +1,3 @@
-# GoalZone_Project
 # ⚽ GoalZone Premier League
 
 > Full-stack bir Premier League maç takip ve istatistik platformu.
