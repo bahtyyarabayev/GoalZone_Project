@@ -1,0 +1,372 @@
+﻿@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Maç Ekle";
+    var teams = ViewBag.Teams as List<GoalZonePremierLig.Web.Api.Dtos.TeamsDto.ResultTeamDto> ?? new();
+}
+
+@section Styles {
+    <style>
+        .admin-head {
+            background: linear-gradient(135deg,var(--bg2),var(--card));
+            border-bottom: 1px solid var(--border);
+            padding: 28px 0 20px
+        }
+
+        .admin-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(41,121,255,.1);
+            border: 1px solid rgba(41,121,255,.25);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-family: var(--fd);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--blue);
+            text-transform: uppercase;
+            margin-bottom: 10px
+        }
+
+        .admin-title {
+            font-family: var(--fd);
+            font-size: clamp(22px,4vw,36px);
+            font-weight: 900;
+            line-height: 1
+        }
+
+        .form-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--r3);
+            padding: 28px;
+            margin-bottom: 18px
+        }
+
+        .fc-title {
+            font-family: var(--fd);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--t3);
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+            .fc-title::after {
+                content: '';
+                flex: 1;
+                height: 1px;
+                background: var(--border)
+            }
+
+        .form-label {
+            font-family: var(--fd);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--t2);
+            margin-bottom: 6px
+        }
+
+        .form-control, .form-select {
+            background: var(--elevated) !important;
+            border: 1px solid var(--border) !important;
+            color: var(--t1) !important;
+            border-radius: var(--r1) !important;
+            font-family: var(--fd) !important;
+            font-size: 15px !important;
+            padding: 10px 14px !important
+        }
+
+            .form-control:focus, .form-select:focus {
+                border-color: var(--blue) !important;
+                box-shadow: 0 0 0 3px rgba(41,121,255,.15) !important
+            }
+
+            .form-control::placeholder {
+                color: var(--t3) !important
+            }
+
+            .form-select option {
+                background: var(--card);
+                color: var(--t1)
+            }
+
+        .form-check-input {
+            background: var(--elevated);
+            border-color: var(--border)
+        }
+
+            .form-check-input:checked {
+                background-color: var(--green);
+                border-color: var(--green)
+            }
+
+        .btn-submit {
+            background: linear-gradient(135deg,var(--blue),#5b9fff);
+            border: none;
+            color: #fff;
+            font-family: var(--fd);
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 12px 32px;
+            border-radius: var(--r2);
+            transition: var(--tr);
+            cursor: pointer
+        }
+
+            .btn-submit:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 8px 24px rgba(41,121,255,.4)
+            }
+
+        .team-preview {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--r1);
+            padding: 10px 14px;
+            margin-top: 8px;
+            min-height: 50px
+        }
+
+        .tp-logo {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--card);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+            font-family: var(--fd);
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--t2)
+        }
+
+            .tp-logo img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                padding: 3px
+            }
+
+        .tp-name {
+            font-family: var(--fd);
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--t1)
+        }
+
+        .alert-success-custom {
+            background: rgba(0,230,118,.08);
+            border: 1px solid rgba(0,230,118,.25);
+            color: var(--green);
+            border-radius: var(--r2);
+            padding: 14px 18px;
+            margin-bottom: 20px;
+            font-family: var(--fd);
+            font-size: 14px;
+            font-weight: 700
+        }
+
+        .alert-error-custom {
+            background: rgba(255,23,68,.08);
+            border: 1px solid rgba(255,23,68,.25);
+            color: var(--live);
+            border-radius: var(--r2);
+            padding: 14px 18px;
+            margin-bottom: 20px;
+            font-family: var(--fd);
+            font-size: 14px;
+            font-weight: 700
+        }
+    </style>
+}
+
+    <section class="admin-head">
+        <div class="wrap">
+            <div class="admin-badge"><i class="bi bi-plus-circle"></i> Admin Panel</div>
+            <h1 class="admin-title">Yeni <span style="color:var(--green)">Maç Ekle</span></h1>
+        </div>
+    </section>
+
+    <main>
+        <div class="wrap" style="padding-top:28px;padding-bottom:56px">
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert-success-custom"><i class="bi bi-check-circle me-2"></i>@TempData["Success"]</div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert-error-custom"><i class="bi bi-exclamation-circle me-2"></i>@TempData["Error"]</div>
+        }
+
+        <form method="post" asp-action="AddMatch" asp-controller="Admin">
+            <div class="row g-4">
+                <div class="col-lg-8">
+
+                    <!-- TAKIMLAR -->
+                    <div class="form-card">
+                        <div class="fc-title"><i class="bi bi-people-fill" style="color:var(--blue)"></i> Takımlar</div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Ev Sahibi Takım</label>
+                                <select name="HomeTeamId" id="homeSelect" class="form-select" required onchange="updatePreview('home', this)">
+                                    <option value="">— Takım Seçin —</option>
+                                    @foreach (var t in teams)
+                                    {
+                                        <option value="@t.TeamId" data-logo="@t.LogoUrl" data-name="@t.Name">@t.Name</option>
+                                    }
+                                </select>
+                                <div class="team-preview" id="homePreview">
+                                    <div class="tp-logo" id="homeLogo"><i class="bi bi-shield"></i></div>
+                                    <span class="tp-name" id="homeName" style="color:var(--t3)">Takım seçilmedi</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Deplasman Takımı</label>
+                                <select name="AwayTeamId" id="awaySelect" class="form-select" required onchange="updatePreview('away', this)">
+                                    <option value="">— Takım Seçin —</option>
+                                    @foreach (var t in teams)
+                                    {
+                                        <option value="@t.TeamId" data-logo="@t.LogoUrl" data-name="@t.Name">@t.Name</option>
+                                    }
+                                </select>
+                                <div class="team-preview" id="awayPreview">
+                                    <div class="tp-logo" id="awayLogo"><i class="bi bi-shield"></i></div>
+                                    <span class="tp-name" id="awayName" style="color:var(--t3)">Takım seçilmedi</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MAÇ BİLGİLERİ -->
+                    <div class="form-card">
+                        <div class="fc-title"><i class="bi bi-calendar-event" style="color:var(--gold)"></i> Maç Bilgileri</div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Maç Tarihi & Saati</label>
+                                <input type="datetime-local" name="MatchDate" class="form-control" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Stadyum</label>
+                                <input type="text" name="Stadium" class="form-control" placeholder="Emirates Stadium" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Hafta</label>
+                                <input type="text" name="Week" class="form-control" placeholder="37.Hafta" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Durum</label>
+                                <select name="Status" id="statusSelect" class="form-select" onchange="toggleScore(this.value)">
+                                    <option value="Upcoming">Upcoming — Yaklaşan</option>
+                                    <option value="Live">Live — Canlı</option>
+                                    <option value="Finished">Finished — Tamamlandı</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6" id="minuteRow" style="display:none">
+                                <label class="form-label">Dakika</label>
+                                <input type="number" name="Minute" class="form-control" placeholder="67" min="0" max="120" value="0" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SKOR -->
+                    <div class="form-card" id="scoreCard" style="display:none">
+                        <div class="fc-title"><i class="bi bi-trophy" style="color:var(--green)"></i> Skor</div>
+                        <input type="hidden" name="HasScore" id="hasScoreInput" value="false" />
+                        <div class="row g-3">
+                            <div class="col-md-5">
+                                <label class="form-label" id="homeScoreLbl">Ev Sahibi Skoru</label>
+                                <input type="number" name="HomeScore" class="form-control" placeholder="0" min="0" max="20" />
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end justify-content-center pb-2">
+                                <span style="font-family:var(--fd);font-size:28px;font-weight:900;color:var(--t3)">—</span>
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label" id="awayScoreLbl">Deplasman Skoru</label>
+                                <input type="number" name="AwayScore" class="form-control" placeholder="0" min="0" max="20" />
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- SAĞ PANEL -->
+                <div class="col-lg-4">
+                    <div class="form-card">
+                        <div class="fc-title"><i class="bi bi-toggles" style="color:var(--green)"></i> Ayarlar</div>
+                        <div class="form-check mb-3" style="display:flex;align-items:center;gap:12px">
+                            <input class="form-check-input" type="checkbox" name="IsFeatured" value="true" id="featuredCheck" style="width:20px;height:20px;margin:0;cursor:pointer" />
+                            <label class="form-check-label" for="featuredCheck" style="font-family:var(--fd);font-size:14px;font-weight:700;color:var(--t2);cursor:pointer">
+                                <i class="bi bi-star-fill" style="color:var(--gold);margin-right:6px"></i>Öne Çıkan Maç
+                            </label>
+                        </div>
+                        <p style="font-size:12px;color:var(--t3)">Öne çıkan maçlar ana sayfada büyük kart olarak görünür.</p>
+                    </div>
+
+                    <div class="form-card">
+                        <div class="fc-title"><i class="bi bi-info-circle" style="color:var(--blue)"></i> Bilgi</div>
+                        <p style="font-size:12px;color:var(--t3);line-height:1.7">
+                            Durum <strong style="color:var(--t2)">Upcoming</strong> seçilirse skor alanları gizlenir.<br><br>
+                            <strong style="color:var(--t2)">Live</strong> veya <strong style="color:var(--t2)">Finished</strong> seçilirse skor girişi zorunlu hale gelir ve dakika gösterilir.
+                        </p>
+                    </div>
+
+                    <button type="submit" class="btn-submit w-100">
+                        <i class="bi bi-plus-circle me-2"></i> Maçı Ekle
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</main>
+
+@section Scripts {
+    <script>
+        function updatePreview(side, select) {
+            const opt = select.options[select.selectedIndex];
+            const logo = opt.dataset.logo;
+            const name = opt.dataset.name || 'Takım seçilmedi';
+            const logoEl = document.getElementById(side + 'Logo');
+            const nameEl = document.getElementById(side + 'Name');
+            nameEl.textContent = name;
+            nameEl.style.color = name === 'Takım seçilmedi' ? 'var(--t3)' : 'var(--t1)';
+            if (logo) {
+                logoEl.innerHTML = `<img src="${logo}" onerror="this.parentNode.innerHTML='<i class=\\'bi bi-shield\\'></i>'" />`;
+            } else {
+                logoEl.innerHTML = '<i class="bi bi-shield"></i>';
+            }
+        }
+
+        function toggleScore(status) {
+            const scoreCard  = document.getElementById('scoreCard');
+            const minuteRow  = document.getElementById('minuteRow');
+            const hasScore   = document.getElementById('hasScoreInput');
+            if (status === 'Upcoming') {
+                scoreCard.style.display  = 'none';
+                minuteRow.style.display  = 'none';
+                hasScore.value = 'false';
+            } else {
+                scoreCard.style.display  = 'block';
+                minuteRow.style.display  = status === 'Live' ? 'block' : 'none';
+                hasScore.value = 'true';
+            }
+        }
+    </script>
+}

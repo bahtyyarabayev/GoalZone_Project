@@ -1,0 +1,656 @@
+﻿@model List<GoalZonePremierLig.Web.Api.Dtos.StandingDto.ResultStandingDto>
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Puan Durumu";
+
+    var siraliListe = Model
+        .OrderByDescending(x => x.Points)
+        .ThenByDescending(x => x.GoalDifference)
+        .ThenByDescending(x => x.GoalsFor)
+        .ToList();
+
+    var lider = siraliListe.FirstOrDefault();
+    var enCokGol = Model?.OrderByDescending(x => x.GoalsFor).FirstOrDefault();
+    var enAzYenilen = Model?.OrderBy(x => x.GoalsAgainst).FirstOrDefault();
+    var enIyiAveraj = Model?.OrderByDescending(x => x.GoalDifference).FirstOrDefault();
+}
+
+@section Styles {
+    <style>
+        /* ── PAGE HEADER ── */
+        .pg-head {
+            background: linear-gradient(135deg,var(--bg2),var(--card));
+            border-bottom: 1px solid var(--border);
+            padding: 32px 0 24px;
+            position: relative;
+            overflow: hidden
+        }
+
+            .pg-head::before {
+                content: '';
+                position: absolute;
+                top: -40%;
+                right: -5%;
+                width: 380px;
+                height: 380px;
+                background: radial-gradient(circle,rgba(0,230,118,.05) 0%,transparent 70%);
+                pointer-events: none
+            }
+
+        .pg-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(255,214,0,.09);
+            border: 1px solid rgba(255,214,0,.22);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-family: var(--fd);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--gold);
+            text-transform: uppercase;
+            margin-bottom: 10px
+        }
+
+        .pg-title {
+            font-family: var(--fd);
+            font-size: clamp(26px,5vw,42px);
+            font-weight: 900;
+            letter-spacing: .5px;
+            line-height: 1
+        }
+
+        .pg-sub {
+            font-size: 13px;
+            color: var(--t2);
+            margin-top: 6px
+        }
+
+        /* ── LEGEND ── */
+        .legend {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap
+        }
+
+        .leg-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: var(--t2);
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 5px 10px;
+            border-radius: 7px
+        }
+
+        .leg-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 2px;
+            flex-shrink: 0
+        }
+
+        /* ── TOP STATS ── */
+        .tbl-wrap {
+            padding: 28px 0 56px
+        }
+
+        .top-stats {
+            display: grid;
+            grid-template-columns: repeat(4,1fr);
+            gap: 14px;
+            margin-bottom: 24px
+        }
+
+        .ts-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--r2);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            transition: var(--tr)
+        }
+
+            .ts-card:hover {
+                border-color: var(--blue);
+                background: var(--card2)
+            }
+
+        .ts-label {
+            font-family: var(--fd);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--t3)
+        }
+
+        .ts-val {
+            font-family: var(--fd);
+            font-size: 28px;
+            font-weight: 900;
+            line-height: 1
+        }
+
+        .ts-team {
+            font-size: 12px;
+            color: var(--t2);
+            margin-top: 2px
+        }
+
+        /* ── ZONE LABELS ── */
+        .zone-lbl {
+            font-family: var(--fd);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--t3);
+            padding: 12px 0 6px;
+            border-top: 1px solid var(--border);
+            margin-top: 4px
+        }
+
+        /* ── TABLE ── */
+        .std-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 4px
+        }
+
+            .std-table thead th {
+                font-family: var(--fd);
+                font-size: 10px;
+                font-weight: 700;
+                letter-spacing: 1.5px;
+                text-transform: uppercase;
+                color: var(--t3);
+                padding: 6px 10px;
+                text-align: center;
+                border: none
+            }
+
+                .std-table thead th.team-col {
+                    text-align: left;
+                    padding-left: 14px
+                }
+
+        .std-row {
+            background: var(--card);
+            transition: var(--tr);
+            cursor: pointer
+        }
+
+            .std-row:hover {
+                background: var(--card2);
+                transform: translateX(3px)
+            }
+
+            .std-row td {
+                padding: 11px 10px;
+                text-align: center;
+                border: none;
+                vertical-align: middle
+            }
+
+                .std-row td:first-child {
+                    border-radius: var(--r1) 0 0 var(--r1);
+                    padding-left: 0
+                }
+
+                .std-row td:last-child {
+                    border-radius: 0 var(--r1) var(--r1) 0
+                }
+
+        /* position strip */
+        .pos-strip {
+            width: 4px;
+            height: 42px;
+            border-radius: 2px 0 0 2px
+        }
+
+        .pos-num {
+            font-family: var(--fd);
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--t2);
+            width: 38px;
+            display: inline-block;
+            text-align: center
+        }
+
+            .pos-num.top1 {
+                color: var(--gold)
+            }
+
+            .pos-num.top4 {
+                color: var(--green)
+            }
+
+            .pos-num.euro {
+                color: var(--blue)
+            }
+
+            .pos-num.rel {
+                color: var(--live)
+            }
+
+        /* team cell */
+        .team-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-align: left;
+            min-width: 160px
+        }
+
+        .t-logo {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--elevated);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--fd);
+            font-size: 9px;
+            font-weight: 800;
+            color: var(--t2);
+            overflow: hidden;
+            flex-shrink: 0
+        }
+
+            .t-logo img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                padding: 3px
+            }
+
+        .t-name {
+            font-family: var(--fd);
+            font-size: 15px;
+            font-weight: 700
+        }
+
+            .t-name .t-short {
+                display: none;
+                font-size: 14px
+            }
+
+        /* stat cells */
+        .s-mp {
+            font-family: var(--fd);
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--t2)
+        }
+
+        .s-w {
+            font-family: var(--fd);
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--green)
+        }
+
+        .s-d {
+            font-family: var(--fd);
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--t2)
+        }
+
+        .s-l {
+            font-family: var(--fd);
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--live)
+        }
+
+        .s-gf, .s-ga {
+            font-family: var(--fd);
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--t1)
+        }
+
+        .s-gd {
+            font-family: var(--fd);
+            font-size: 14px;
+            font-weight: 700
+        }
+
+            .s-gd.pos {
+                color: var(--green)
+            }
+
+            .s-gd.neg {
+                color: var(--live)
+            }
+
+            .s-gd.zero {
+                color: var(--t3)
+            }
+
+        .s-pts {
+            font-family: var(--fd);
+            font-size: 18px;
+            font-weight: 900;
+            color: var(--t1)
+        }
+
+        .pts-top {
+            color: var(--gold) !important
+        }
+
+        /* form */
+        .form-row {
+            display: flex;
+            gap: 3px;
+            justify-content: center
+        }
+
+        .fp {
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            font-family: var(--fd);
+            font-size: 10px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1
+        }
+
+        .fp-w {
+            background: rgba(0,230,118,.18);
+            color: var(--green)
+        }
+
+        .fp-d {
+            background: rgba(123,150,196,.12);
+            color: var(--t2)
+        }
+
+        .fp-l {
+            background: rgba(255,23,68,.14);
+            color: var(--live)
+        }
+
+        /* zone colors */
+        .cl-champ {
+            background: rgba(255,214,0,.7)
+        }
+
+        .cl-ucl {
+            background: var(--green)
+        }
+
+        .cl-uel {
+            background: var(--blue)
+        }
+
+        .cl-rel {
+            background: var(--live)
+        }
+
+        .cl-none {
+            background: transparent
+        }
+
+        @@media(max-width:900px) {
+            .hide-md {
+                display: none !important
+            }
+
+            .t-name .t-full {
+                display: none
+            }
+
+            .t-name .t-short {
+                display: inline
+            }
+
+            .top-stats {
+                grid-template-columns: repeat(2,1fr)
+            }
+        }
+
+        @@media(max-width:600px) {
+            .hide-sm {
+                display: none !important
+            }
+
+            .top-stats {
+                grid-template-columns: repeat(2,1fr);
+                gap: 8px
+            }
+
+            .ts-val {
+                font-size: 22px
+            }
+
+            .s-pts {
+                font-size: 15px
+            }
+
+            .pos-num {
+                width: 28px;
+                font-size: 14px
+            }
+
+            .team-cell {
+                min-width: 120px;
+                gap: 7px
+            }
+
+            .t-logo {
+                width: 22px;
+                height: 22px
+            }
+
+            .fp {
+                width: 15px;
+                height: 15px;
+                font-size: 9px
+            }
+        }
+    </style>
+}
+
+    <!-- PAGE HEADER -->
+    <section class="pg-head">
+        <div class="wrap">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <div class="pg-badge"><i class="bi bi-trophy-fill"></i> Premier League</div>
+                    <h1 class="pg-title">Puan <span style="color:var(--green)">Durumu</span></h1>
+                    <p class="pg-sub">2025 / 2026 Sezonu &nbsp;·&nbsp; 37. Hafta Sonrası &nbsp;·&nbsp; @siraliListe.Count Takım</p>
+                </div>
+                <div class="col-lg-4 mt-3 mt-lg-0">
+                    <div class="legend">
+                        <div class="leg-item"><div class="leg-dot" style="background:rgba(255,214,0,.8)"></div>Şampiyon</div>
+                        <div class="leg-item"><div class="leg-dot" style="background:var(--green)"></div>Şampiyonlar Ligi</div>
+                        <div class="leg-item"><div class="leg-dot" style="background:var(--blue)"></div>UEFA Ligi</div>
+                        <div class="leg-item"><div class="leg-dot" style="background:var(--live)"></div>Küme Düşme</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MAIN -->
+    <main>
+        <div class="wrap">
+            <div class="tbl-wrap">
+
+                <!-- TOP STAT CARDS -->
+                <div class="top-stats">
+                    <div class="ts-card">
+                        <div class="ts-label">Lider Takım</div>
+                        <div class="ts-val" style="color:var(--gold)">@(lider?.ShortName ?? "-")</div>
+                    <div class="ts-team">@(lider?.TeamName ?? "-") · @(lider?.Points ?? 0) puan</div>
+                </div>
+                <div class="ts-card">
+                    <div class="ts-label">En Çok Gol</div>
+                    <div class="ts-val" style="color:var(--green)">@(enCokGol?.GoalsFor ?? 0)</div>
+                    <div class="ts-team">@(enCokGol?.TeamName ?? "-")</div>
+                </div>
+                <div class="ts-card">
+                    <div class="ts-label">En Az Yenilen</div>
+                    <div class="ts-val" style="color:var(--blue)">@(enAzYenilen?.GoalsAgainst ?? 0)</div>
+                    <div class="ts-team">@(enAzYenilen?.TeamName ?? "-")</div>
+                </div>
+                <div class="ts-card">
+                    <div class="ts-label">En İyi Averaj</div>
+                    <div class="ts-val" style="color:var(--t1);font-size:22px">
+                        @(enIyiAveraj?.GoalDifference > 0 ? "+" + enIyiAveraj?.GoalDifference : enIyiAveraj?.GoalDifference.ToString())
+                    </div>
+                    <div class="ts-team">@(enIyiAveraj?.TeamName ?? "-")</div>
+                </div>
+            </div>
+
+            <!-- TABLE -->
+            <div style="overflow-x:auto;border-radius:var(--r3);border:1px solid var(--border)">
+                <table class="std-table" style="min-width:620px">
+                    <thead>
+                        <tr>
+                            <th style="width:4px;padding:0"></th>
+                            <th style="width:44px">#</th>
+                            <th class="team-col">Takım</th>
+                            <th>O</th>
+                            <th>G</th>
+                            <th>B</th>
+                            <th>M</th>
+                            <th class="hide-sm">AG</th>
+                            <th class="hide-sm">YG</th>
+                            <th>AV</th>
+                            <th>Son 5</th>
+                            <th>P</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            for (int i = 0; i < siraliListe.Count; i++)
+                            {
+                                var item = siraliListe[i];
+                                var sira = i + 1;
+                                var averaj = item.GoalDifference;
+                                var averajClass = averaj > 0 ? "pos" : averaj < 0 ? "neg" : "zero";
+
+                                string zoneClass, posClass;
+                                if (sira == 1) { zoneClass = "cl-champ"; posClass = "top1"; }
+                                else if (sira <= 4) { zoneClass = "cl-ucl"; posClass = "top4"; }
+                                else if (sira <= 6) { zoneClass = "cl-uel"; posClass = "euro"; }
+                                else if (sira >= 18) { zoneClass = "cl-rel"; posClass = "rel"; }
+                                else { zoneClass = "cl-none"; posClass = ""; }
+
+                                // Bölüm başlıkları
+                                if (sira == 1)
+                                {
+                                    <tr><td colspan="12"><div class="zone-lbl">🏆 &nbsp;Şampiyonlar Ligi (1–4)</div></td></tr>
+                                }
+                                else if (sira == 5)
+                                {
+                                    <tr><td colspan="12"><div class="zone-lbl">🔵 &nbsp;UEFA Avrupa Ligi (5–6)</div></td></tr>
+                                }
+                                else if (sira == 7)
+                                {
+                                    <tr><td colspan="12"><div class="zone-lbl">— &nbsp;Avrupa Dışı (7–17)</div></td></tr>
+                                }
+                                else if (sira == 18)
+                                {
+                                    <tr><td colspan="12"><div class="zone-lbl">🔴 &nbsp;Küme Düşme Hattı (18–20)</div></td></tr>
+                                }
+
+                                <tr class="std-row">
+                                    <td style="padding:0;width:4px">
+                                        <div class="pos-strip @zoneClass" style="height:44px;border-radius:var(--r1) 0 0 var(--r1)"></div>
+                                    </td>
+                                    <td>
+                                        <span class="pos-num @posClass">@sira</span>
+                                    </td>
+                                    <td>
+                                        <div class="team-cell">
+                                            <div class="t-logo">
+                                                @if (!string.IsNullOrEmpty(item.LogoUrl))
+                                                {
+                                                    <img src="@item.LogoUrl" alt="@item.ShortName" onerror="this.style.display='none'" />
+                                                }
+                                                else
+                                                {
+                                                    <span>@item.ShortName</span>
+                                                }
+                                            </div>
+                                            <div class="t-name">
+                                                <span class="t-full">@item.TeamName</span>
+                                                <span class="t-short">@item.ShortName</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="s-mp">@item.Played</td>
+                                    <td class="s-w">@item.Won</td>
+                                    <td class="s-d">@item.Draw</td>
+                                    <td class="s-l">@item.Lost</td>
+                                    <td class="s-gf hide-sm">@item.GoalsFor</td>
+                                    <td class="s-ga hide-sm">@item.GoalsAgainst</td>
+                                    <td class="s-gd @averajClass">
+                                        @(averaj > 0 ? "+" + averaj : averaj.ToString())
+                                    </td>
+                                    <td>
+                                        <div class="form-row">
+                                            @if (!string.IsNullOrEmpty(item.Form))
+                                            {
+                                                foreach (char f in item.Form)
+                                                {
+                                                    var css = f == 'W' ? "fp-w" : f == 'D' ? "fp-d" : "fp-l";
+                                                    <div class="fp @css">@f</div>
+                                                }
+                                            }
+                                        </div>
+                                    </td>
+                                    <td class="s-pts @(sira == 1 ? "pts-top" : "")">@item.Points</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="12" style="text-align:center;padding:40px;color:var(--t3)">
+                                    <i class="bi bi-table" style="font-size:28px;display:block;margin-bottom:8px;opacity:.3"></i>
+                                    Puan durumu bulunamadı
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+@section Scripts {
+    <script>
+        // Satır animasyonu
+        document.querySelectorAll('.std-row').forEach((r, i) => {
+            r.style.opacity = '0';
+            r.style.transform = 'translateY(10px)';
+            setTimeout(() => {
+                r.style.transition = 'opacity .3s ease, transform .3s ease';
+                r.style.opacity = '1';
+                r.style.transform = 'translateY(0)';
+            }, 30 + i * 28);
+        });
+    </script>
+}

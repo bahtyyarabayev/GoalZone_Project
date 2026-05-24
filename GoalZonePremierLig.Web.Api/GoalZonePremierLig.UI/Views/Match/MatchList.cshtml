@@ -1,0 +1,906 @@
+﻿@model List<GoalZonePremierLig.Web.Api.Dtos.MatchDto.ResultMatchDto>
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Maç Listesi";
+    ViewData["ActivePage"] = "Home";
+
+    var live = Model.Where(x => x.Status == "Live").ToList();
+    var finished = Model.Where(x => x.Status == "Finished").OrderByDescending(x => x.MatchDate).ToList();
+    var upcoming = Model.Where(x => x.Status == "Upcoming").OrderBy(x => x.MatchDate).ToList();
+    var featured = Model.Where(x => x.IsFeatured).ToList();
+    var featuredFirst = featured.FirstOrDefault();
+}
+
+@section Styles {
+    <style>
+        /* ── LEAGUE HEADER ── */
+        .lg-head {
+            background: linear-gradient(135deg,var(--bg2),var(--card));
+            border-bottom: 1px solid var(--border);
+            padding: 32px 0 24px;
+            position: relative;
+            overflow: hidden
+        }
+
+            .lg-head::before {
+                content: '';
+                position: absolute;
+                top: -40%;
+                right: -5%;
+                width: 380px;
+                height: 380px;
+                background: radial-gradient(circle,rgba(0,230,118,.05) 0%,transparent 70%);
+                pointer-events: none
+            }
+
+        .lg-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(255,214,0,.09);
+            border: 1px solid rgba(255,214,0,.22);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-family: var(--fd);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--gold);
+            text-transform: uppercase;
+            margin-bottom: 10px
+        }
+
+        .lg-title {
+            font-family: var(--fd);
+            font-size: clamp(26px,5vw,42px);
+            font-weight: 900;
+            letter-spacing: .5px;
+            line-height: 1
+        }
+
+        .lg-sub {
+            font-size: 13px;
+            color: var(--t2);
+            margin-top: 6px
+        }
+
+        .lg-stats {
+            display: flex;
+            gap: 24px;
+            align-items: flex-end;
+            justify-content: flex-end;
+            height: 100%
+        }
+
+        .ls-num {
+            font-family: var(--fd);
+            font-size: 30px;
+            font-weight: 800;
+            color: var(--green);
+            line-height: 1
+        }
+
+        .ls-lbl {
+            font-size: 10px;
+            color: var(--t3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 3px
+        }
+
+        /* ── FILTER TABS ── */
+        .ftabs-wrap {
+            background: var(--bg2);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 62px;
+            z-index: 99
+        }
+
+        .ftabs {
+            display: flex;
+            overflow-x: auto;
+            scrollbar-width: none
+        }
+
+            .ftabs::-webkit-scrollbar {
+                display: none
+            }
+
+        .ftab {
+            font-family: var(--fd);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: var(--t3);
+            padding: 15px 18px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            border-bottom: 2px solid transparent;
+            transition: var(--tr);
+            white-space: nowrap
+        }
+
+            .ftab:hover {
+                color: var(--t2);
+                background: rgba(255,255,255,.02)
+            }
+
+            .ftab.active {
+                color: var(--green);
+                border-bottom-color: var(--green)
+            }
+
+        .live-dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background: var(--live);
+            border-radius: 50%;
+            margin-right: 5px;
+            animation: pdot 1.4s ease-in-out infinite
+        }
+
+        @@keyframes pdot {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1)
+            }
+
+            50% {
+                opacity: .4;
+                transform: scale(.7)
+            }
+        }
+
+        .bcnt {
+            background: var(--live);
+            color: #fff;
+            border-radius: 9px;
+            font-size: 10px;
+            padding: 1px 6px;
+            margin-left: 5px;
+            font-weight: 700
+        }
+
+        /* ── FEATURED CARD ── */
+        .feat-wrap {
+            padding: 30px 0 6px
+        }
+
+        .feat-lbl {
+            font-family: var(--fd);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--green);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+            .feat-lbl::before {
+                content: '';
+                display: inline-block;
+                width: 18px;
+                height: 2px;
+                background: var(--green)
+            }
+
+        .feat-card {
+            background: linear-gradient(135deg,#0d1d38 0%,#13213e 50%,#0d1f30 100%);
+            border: 1px solid rgba(41,121,255,.2);
+            border-radius: var(--r3);
+            padding: 30px 36px;
+            position: relative;
+            overflow: hidden;
+            transition: var(--tr);
+            display: block;
+            color: inherit;
+            text-decoration: none
+        }
+
+            .feat-card:hover {
+                border-color: rgba(41,121,255,.5);
+                transform: translateY(-2px);
+                box-shadow: 0 12px 44px rgba(0,0,0,.6);
+                color: inherit
+            }
+
+            .feat-card::after {
+                content: '★ FEATURED MATCH';
+                position: absolute;
+                top: 14px;
+                right: 18px;
+                font-family: var(--fd);
+                font-size: 9px;
+                font-weight: 800;
+                letter-spacing: 2px;
+                color: var(--gold);
+                background: rgba(255,214,0,.09);
+                border: 1px solid rgba(255,214,0,.2);
+                padding: 3px 10px;
+                border-radius: 10px
+            }
+
+        .ft-team {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px
+        }
+
+        .ft-logo {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: var(--elevated);
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--fd);
+            font-size: 20px;
+            font-weight: 900;
+            overflow: hidden
+        }
+
+            .ft-logo img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                padding: 6px
+            }
+
+        .ft-name {
+            font-family: var(--fd);
+            font-size: 18px;
+            font-weight: 800;
+            text-align: center
+        }
+
+        .ft-type {
+            font-size: 10px;
+            color: var(--t3);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600
+        }
+
+        .ft-sc-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px
+        }
+
+        .ft-sc {
+            font-family: var(--fd);
+            font-size: clamp(48px,8vw,72px);
+            font-weight: 900;
+            letter-spacing: -3px;
+            line-height: 1;
+            background: linear-gradient(180deg,#fff 0%,#9ab5e0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text
+        }
+
+        .ft-stat {
+            font-family: var(--fd);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: var(--t3)
+        }
+
+        .ft-meta {
+            font-size: 12px;
+            color: var(--t2);
+            text-align: center;
+            margin-top: 4px
+        }
+
+        /* ── SECTION TITLE ── */
+        .sec-ttl {
+            font-family: var(--fd);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--t3);
+            padding: 14px 0 8px;
+            border-top: 1px solid var(--border);
+            margin-top: 8px;
+            margin-bottom: 4px
+        }
+
+        /* ── MATCH CARD ── */
+        .mc-wrap {
+            margin-bottom: 8px
+        }
+
+        .mc {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--r2);
+            padding: 0 18px;
+            min-height: 66px;
+            overflow: hidden;
+            transition: var(--tr);
+            color: inherit;
+            text-decoration: none
+        }
+
+            .mc:hover {
+                background: var(--card2);
+                border-color: rgba(41,121,255,.3);
+                transform: translateY(-1px);
+                box-shadow: 0 6px 24px rgba(0,0,0,.4);
+                color: inherit
+            }
+
+            .mc.live {
+                border-color: rgba(255,23,68,.22);
+                background: linear-gradient(90deg,var(--card),rgba(255,23,68,.03))
+            }
+
+                .mc.live:hover {
+                    border-color: rgba(255,23,68,.45)
+                }
+
+            .mc.lp {
+                position: relative
+            }
+
+                .mc.lp::before {
+                    content: '';
+                    position: absolute;
+                    inset: -1px;
+                    border-radius: inherit;
+                    border: 1px solid rgba(255,23,68,.35);
+                    animation: pbrd 2s ease-in-out infinite;
+                    pointer-events: none
+                }
+
+        @@keyframes pbrd {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1)
+            }
+
+            50% {
+                opacity: 0;
+                transform: scale(1.012)
+            }
+        }
+
+        .mc-time {
+            flex-shrink: 0;
+            width: 74px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            padding: 12px 0
+        }
+
+        .mc-min {
+            font-family: var(--fd);
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--t2)
+        }
+
+            .mc-min.lc {
+                color: var(--live)
+            }
+
+            .mc-min.bc {
+                color: var(--blue)
+            }
+
+        .sbadge {
+            font-family: var(--fd);
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: .8px;
+            text-transform: uppercase;
+            padding: 2px 7px;
+            border-radius: 9px;
+            white-space: nowrap
+        }
+
+        .sb-fin {
+            background: rgba(143,163,200,.09);
+            color: var(--t3)
+        }
+
+        .sb-live {
+            background: rgba(255,23,68,.11);
+            color: var(--live);
+            border: 1px solid rgba(255,23,68,.2);
+            display: flex;
+            align-items: center;
+            gap: 3px
+        }
+
+        .sb-up {
+            background: rgba(41,121,255,.1);
+            color: var(--blue)
+        }
+
+        .dvv {
+            width: 1px;
+            height: 44px;
+            background: var(--border);
+            flex-shrink: 0;
+            margin: 0 16px
+        }
+
+        .mc-teams {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column
+        }
+
+        .mc-tr {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 5px 0
+        }
+
+            .mc-tr:first-child {
+                border-bottom: 1px solid rgba(255,255,255,.04)
+            }
+
+        .tl-sm {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: var(--elevated);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--fd);
+            font-size: 9px;
+            font-weight: 800;
+            color: var(--t2);
+            flex-shrink: 0;
+            overflow: hidden
+        }
+
+            .tl-sm img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                padding: 3px
+            }
+
+        .tn {
+            font-family: var(--fd);
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: .2px;
+            flex: 1;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+
+        .ts {
+            font-family: var(--fd);
+            font-size: 22px;
+            font-weight: 900;
+            color: var(--t1);
+            min-width: 26px;
+            text-align: right;
+            flex-shrink: 0
+        }
+
+            .ts.win {
+                color: var(--green)
+            }
+
+            .ts.dim {
+                font-size: 15px;
+                color: var(--t3)
+            }
+
+        .det-btn {
+            flex-shrink: 0;
+            margin-left: 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(41,121,255,.08);
+            border: 1px solid rgba(41,121,255,.2);
+            color: var(--blue);
+            border-radius: var(--r1);
+            padding: 6px 13px;
+            font-family: var(--fd);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: var(--tr);
+            white-space: nowrap;
+            text-decoration: none
+        }
+
+            .det-btn:hover {
+                background: rgba(41,121,255,.18);
+                color: var(--blue)
+            }
+
+        @@media(max-width:600px) {
+            .tn {
+                font-size: 13px
+            }
+
+            .ts {
+                font-size: 18px
+            }
+
+            .mc-time {
+                width: 60px
+            }
+
+            .dvv {
+                margin: 0 10px
+            }
+
+            .det-btn {
+                padding: 5px 8px;
+                font-size: 9px
+            }
+
+                .det-btn span {
+                    display: none
+                }
+
+            .feat-card {
+                padding: 20px 14px
+            }
+
+            .ft-logo {
+                width: 52px;
+                height: 52px
+            }
+
+            .ft-name {
+                font-size: 14px
+            }
+
+            .ft-sc {
+                font-size: 44px
+            }
+
+            .lg-stats {
+                display: none
+            }
+        }
+    </style>
+}
+
+    <!-- LEAGUE HEADER -->
+    <section class="lg-head">
+        <div class="wrap">
+            <div class="row align-items-center">
+                <div class="col-lg-7">
+                    <div class="lg-badge"><i class="bi bi-trophy-fill"></i> Premier League</div>
+                    <h1 class="lg-title">Hafta <span style="color:var(--green)">Sonuçları</span></h1>
+                    <p class="lg-sub">@DateTime.Now.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("tr-TR")) &nbsp;·&nbsp; @Model.Count Maç</p>
+                </div>
+                <div class="col-lg-5 d-none d-lg-block">
+                    <div class="lg-stats">
+                        <div style="text-align:center">
+                            <div class="ls-num" style="color:var(--live)">@live.Count</div>
+                            <div class="ls-lbl">Canlı</div>
+                        </div>
+                        <div style="text-align:center">
+                            <div class="ls-num">@finished.Count</div>
+                            <div class="ls-lbl">Biten</div>
+                        </div>
+                        <div style="text-align:center">
+                            <div class="ls-num" style="color:var(--blue)">@upcoming.Count</div>
+                            <div class="ls-lbl">Yaklaşan</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FILTER TABS -->
+    <div class="ftabs-wrap">
+        <div class="wrap">
+            <div class="ftabs">
+                <button class="ftab active" data-f="all">Tüm Maçlar</button>
+                <button class="ftab" data-f="live"><span class="live-dot"></span>Canlı<span class="bcnt">@live.Count</span></button>
+                @*<button class="ftab" data-f="featured"><i class="bi bi-star-fill" style="color:var(--gold);font-size:10px;margin-right:4px"></i>Öne Çıkan</button>*@
+                <button class="ftab" data-f="finished">Tamamlananlar</button>
+                <button class="ftab" data-f="upcoming">Yaklaşanlar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN -->
+    <main>
+        <div class="wrap" style="padding-top:28px;padding-bottom:56px">
+
+            <!-- ÖNE ÇIKAN (büyük kart - sadece ilk featured) -->
+        @if (featuredFirst != null)
+        {
+            <div class="feat-wrap mcw-section" data-s="featured" id="featWrap">
+                <div class="feat-lbl">Öne Çıkan Maç</div>
+                <a href="@Url.Action("MatchDetail","Match", new { id = featuredFirst.FixtureId })" class="feat-card">
+                    <div class="row align-items-center g-2">
+                        <div class="col-5">
+                            <div class="ft-team">
+                                <div class="ft-logo">
+                                    @if (!string.IsNullOrEmpty(featuredFirst.HomeTeamLogoUrl))
+                                    {
+                                        <img src="@featuredFirst.HomeTeamLogoUrl" alt="@featuredFirst.HomeTeam" onerror="this.style.display='none'" />
+                                    }
+                                    else
+                                    {
+                                        <span>@(featuredFirst.HomeTeam?.Length >= 3 ? featuredFirst.HomeTeam[..3].ToUpper() : featuredFirst.HomeTeam)</span>
+                                    }
+                                </div>
+                                <div class="ft-name">@featuredFirst.HomeTeam</div>
+                                <div class="ft-type">Ev Sahibi</div>
+                            </div>
+                        </div>
+                        <div class="col-2 text-center">
+                            <div class="ft-sc-area">
+                                @if (featuredFirst.HomeScore.HasValue)
+                                {
+                                    <div class="ft-sc">@featuredFirst.HomeScore–@featuredFirst.AwayScore</div>
+                                    @if (featuredFirst.Status == "Live")
+                                    {
+                                        <div class="ft-stat"><span class="live-dot"></span> @featuredFirst.Minute' DAK</div>
+                                    }
+                                    else
+                                    {
+                                        <div class="ft-stat"><i class="bi bi-check2-circle"></i> MAÇ BİTTİ</div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="ft-sc" style="font-size:32px">@featuredFirst.MatchDate.ToString("HH:mm")</div>
+                                    <div class="ft-stat"><i class="bi bi-clock"></i> YAKLAŞAN</div>
+                                }
+                                <div class="ft-meta">
+                                    <i class="bi bi-geo-alt"></i> @featuredFirst.Stadium &nbsp;·&nbsp;
+                                    @featuredFirst.MatchDate.ToString("dd MMM", new System.Globalization.CultureInfo("tr-TR"))
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-5">
+                            <div class="ft-team">
+                                <div class="ft-logo">
+                                    @if (!string.IsNullOrEmpty(featuredFirst.AwayTeamLogoUrl))
+                                    {
+                                        <img src="@featuredFirst.AwayTeamLogoUrl" alt="@featuredFirst.AwayTeam" onerror="this.style.display='none'" />
+                                    }
+                                    else
+                                    {
+                                        <span>@(featuredFirst.AwayTeam?.Length >= 3 ? featuredFirst.AwayTeam[..3].ToUpper() : featuredFirst.AwayTeam)</span>
+                                    }
+                                </div>
+                                <div class="ft-name">@featuredFirst.AwayTeam</div>
+                                <div class="ft-type">Deplasman</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center mt-3" style="font-size:12px;color:var(--t2)">
+                        <span style="color:var(--blue)">Detayları Gör →</span>
+                    </div>
+                </a>
+            </div>
+        }
+
+        <!-- CANLI -->
+        @if (live.Any())
+        {
+            <div class="sec-ttl mcw-section" data-s="live">🔴 &nbsp;Canlı Maçlar</div>
+            @foreach (var m in live)
+            {
+                <div class="mc-wrap mcw" data-s="live">
+                    <a href="@Url.Action("MatchDetail","Match", new { id = m.FixtureId })" class="mc live lp">
+                        <div class="mc-time">
+                            <div class="mc-min lc">@m.Minute'</div>
+                            <div class="sbadge sb-live"><span class="live-dot"></span>CANLI</div>
+                        </div>
+                        <div class="dvv"></div>
+                        <div class="mc-teams">
+                            <div class="mc-tr">
+                                <div class="tl-sm">
+                                    @if (!string.IsNullOrEmpty(m.HomeTeamLogoUrl))
+                                    {
+                                        <img src="@m.HomeTeamLogoUrl" alt="@m.HomeTeam" onerror="this.style.display='none'" />
+                                    }
+                                    else
+                                    {
+                                        <span>@(m.HomeTeam?.Length >= 3 ? m.HomeTeam[..3].ToUpper() : m.HomeTeam)</span>
+                                    }
+                                </div>
+                                <span class="tn">@m.HomeTeam</span>
+                                <span class="ts @(m.HomeScore > m.AwayScore ? "win" : "")">@m.HomeScore</span>
+                            </div>
+                            <div class="mc-tr">
+                                <div class="tl-sm">
+                                    @if (!string.IsNullOrEmpty(m.AwayTeamLogoUrl))
+                                    {
+                                        <img src="@m.AwayTeamLogoUrl" alt="@m.AwayTeam" onerror="this.style.display='none'" />
+                                    }
+                                    else
+                                    {
+                                        <span>@(m.AwayTeam?.Length >= 3 ? m.AwayTeam[..3].ToUpper() : m.AwayTeam)</span>
+                                    }
+                                </div>
+                                <span class="tn">@m.AwayTeam</span>
+                                <span class="ts @(m.AwayScore > m.HomeScore ? "win" : "")">@m.AwayScore</span>
+                            </div>
+                        </div>
+                        <span class="det-btn"><i class="bi bi-chevron-right"></i> <span>Detay</span></span>
+                    </a>
+                </div>
+            }
+        }
+
+        <!-- BİTEN -->
+        @if (finished.Any())
+        {
+            <div class="sec-ttl mcw-section" data-s="finished" style="margin-top:22px">✅ &nbsp;Tamamlanan Maçlar</div>
+            @foreach (var m in finished)
+            {
+                <div class="mc-wrap mcw" data-s="finished">
+                    <a href="@Url.Action("MatchDetail","Match", new { id = m.FixtureId })" class="mc">
+                        <div class="mc-time">
+                            <div class="mc-min">@m.MatchDate.ToString("HH:mm")</div>
+                            <div class="sbadge sb-fin">MS</div>
+                        </div>
+                        <div class="dvv"></div>
+                        <div class="mc-teams">
+                            <div class="mc-tr">
+                                <div class="tl-sm">
+                                    @if (!string.IsNullOrEmpty(m.HomeTeamLogoUrl))
+                                    {
+                                        <img src="@m.HomeTeamLogoUrl" alt="@m.HomeTeam" onerror="this.style.display='none'" />
+                                    }
+                                    else
+                                    {
+                                        <span>@(m.HomeTeam?.Length >= 3 ? m.HomeTeam[..3].ToUpper() : m.HomeTeam)</span>
+                                    }
+                                </div>
+                                <span class="tn">@m.HomeTeam</span>
+                                <span class="ts @(m.HomeScore > m.AwayScore ? "win" : "")">@m.HomeScore</span>
+                            </div>
+                            <div class="mc-tr">
+                                <div class="tl-sm">
+                                    @if (!string.IsNullOrEmpty(m.AwayTeamLogoUrl))
+                                    {
+                                        <img src="@m.AwayTeamLogoUrl" alt="@m.AwayTeam" onerror="this.style.display='none'" />
+                                    }
+                                    else
+                                    {
+                                        <span>@(m.AwayTeam?.Length >= 3 ? m.AwayTeam[..3].ToUpper() : m.AwayTeam)</span>
+                                    }
+                                </div>
+                                <span class="tn">@m.AwayTeam</span>
+                                <span class="ts @(m.AwayScore > m.HomeScore ? "win" : "")">@m.AwayScore</span>
+                            </div>
+                        </div>
+                        <span class="det-btn"><i class="bi bi-chevron-right"></i> <span>Detay</span></span>
+                    </a>
+                </div>
+            }
+        }
+
+        <!-- YAKLAŞAN -->
+        @if (upcoming.Any())
+        {
+            <div class="sec-ttl mcw-section" data-s="upcoming" style="margin-top:22px">🕐 &nbsp;Yaklaşan Maçlar</div>
+            @foreach (var m in upcoming)
+            {
+                <div class="mc-wrap mcw" data-s="upcoming">
+                    <a href="@Url.Action("MatchDetail","Match", new { id = m.FixtureId })" class="mc">
+                        <div class="mc-time">
+                            <div class="mc-min bc">@m.MatchDate.ToString("HH:mm")</div>
+                            <div class="sbadge sb-up">
+                                @(m.MatchDate.Date == DateTime.Today ? "BUGÜN" : m.MatchDate.Date == DateTime.Today.AddDays(1) ? "YARIN" : m.MatchDate.ToString("dd MMM"))
+                            </div>
+                        </div>
+                        <div class="dvv"></div>
+                        <div class="mc-teams">
+                            <div class="mc-tr">
+                                <div class="tl-sm">
+                                    @if (!string.IsNullOrEmpty(m.HomeTeamLogoUrl))
+                                    {
+                                        <img src="@m.HomeTeamLogoUrl" alt="@m.HomeTeam" onerror="this.style.display='none'" />
+                                    }
+                                    else
+                                    {
+                                        <span>@(m.HomeTeam?.Length >= 3 ? m.HomeTeam[..3].ToUpper() : m.HomeTeam)</span>
+                                    }
+                                </div>
+                                <span class="tn">@m.HomeTeam</span>
+                                <span class="ts dim">—</span>
+                            </div>
+                            <div class="mc-tr">
+                                <div class="tl-sm">
+                                    @if (!string.IsNullOrEmpty(m.AwayTeamLogoUrl))
+                                    {
+                                        <img src="@m.AwayTeamLogoUrl" alt="@m.AwayTeam" onerror="this.style.display='none'" />
+                                    }
+                                    else
+                                    {
+                                        <span>@(m.AwayTeam?.Length >= 3 ? m.AwayTeam[..3].ToUpper() : m.AwayTeam)</span>
+                                    }
+                                </div>
+                                <span class="tn">@m.AwayTeam</span>
+                                <span class="ts dim">—</span>
+                            </div>
+                        </div>
+                        <span class="det-btn"><i class="bi bi-calendar-check"></i> <span>Fikstür</span></span>
+                    </a>
+                </div>
+            }
+        }
+
+        @if (!Model.Any())
+        {
+            <div style="text-align:center;padding:60px 0;color:var(--t3)">
+                <i class="bi bi-calendar-x d-block mb-3" style="font-size:40px;opacity:.3"></i>
+                <div style="font-family:var(--fd);font-size:18px;font-weight:700">Maç bulunamadı</div>
+            </div>
+        }
+
+    </div>
+</main>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.ftab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.ftab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                const f = tab.dataset.f;
+                document.querySelectorAll('.mcw').forEach(w => {
+                    w.style.display = (f === 'all' || w.dataset.s === f) ? 'block' : 'none';
+                });
+                document.querySelectorAll('.mcw-section').forEach(s => {
+                    s.style.display = (f === 'all' || s.dataset.s === f) ? 'block' : 'none';
+                });
+                const feat = document.getElementById('featWrap');
+                if (feat) feat.style.display = (f === 'all' || f === 'featured') ? 'block' : 'none';
+            });
+        });
+
+        // Kart animasyonu
+        document.querySelectorAll('.mc-wrap, .feat-card').forEach((c, i) => {
+            c.style.opacity = '0';
+            c.style.transform = 'translateY(10px)';
+            setTimeout(() => {
+                c.style.transition = 'opacity .3s ease, transform .3s ease';
+                c.style.opacity = '1';
+                c.style.transform = 'translateY(0)';
+            }, 40 + i * 40);
+        });
+    </script>
+}
